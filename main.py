@@ -1,13 +1,22 @@
-from src import get_city_summary
-from src.utils.parse_args import parse_args
-
+from src import get_city_summary, parse_args, print_summary
+from src.exceptions import NetworkError, ServerError, BadRequestError
 
 def main():
-    args = parse_args()
-    city = args.city
-    currency = args.currency
-    summary = get_city_summary(city, currency)
-    print(summary)
+    try:
+        args = parse_args()
+        city = args.city
+        currency = args.currency
+        summary = get_city_summary(city, currency)
+        print_summary(summary)
+    except ValueError as e:
+        print(e)
+        return 1
+    except BadRequestError as e:
+        print(e)
+        return 3
+    except (ServerError, NetworkError) as e:
+        print(e)
+        return 4
     return 0
 
 
