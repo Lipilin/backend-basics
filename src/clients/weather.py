@@ -11,4 +11,11 @@ def get_weather(latitude: float, longitude: float) -> dict:
             "current": "temperature_2m,weather_code",
         },
     )
-    return response
+    temperature = response.get("current", {}).get("temperature_2m")
+    weather_code = response.get("current", {}).get("weather_code")
+    unit = response.get("current_units", {}).get("temperature_2m")
+    return {
+        "temperature": temperature,
+        "weather_code": weather_code,
+        "unit": unit,
+    }
