@@ -5,5 +5,5 @@
 Python 3.12
 
 ## Запуск
-``` python main.py --city= --currency=USD ```
-Параметр city необходим
+``` pip install -r requirements.txt ```
+``` python main.py --city Moscow --currency USD ```
