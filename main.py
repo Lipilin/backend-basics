@@ -12,6 +12,9 @@ def main():
     except ValueError as e:
         print(e)
         return 1
+    except SystemExit as e:
+        print("Введены некорректные аргументы")
+        return 2
     except BadRequestError as e:
         print(e)
         return 3
