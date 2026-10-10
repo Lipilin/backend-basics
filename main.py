@@ -1,6 +1,8 @@
+import sys
+
 from src import get_city_summary, parse_args, print_summary
 from src.exceptions import BadRequestError, NetworkError, ServerError
-import sys
+
 
 def main():
     try:

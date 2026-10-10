@@ -3,7 +3,7 @@ from time import sleep
 import requests
 from requests.exceptions import ConnectionError, HTTPError, JSONDecodeError, Timeout
 
-from src.config.network import DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_RETRY_AFTER
+from src.config.network import DEFAULT_RETRIES, DEFAULT_RETRY_AFTER, DEFAULT_TIMEOUT
 from src.exceptions import BadRequestError, NetworkError, ServerError
 
 
