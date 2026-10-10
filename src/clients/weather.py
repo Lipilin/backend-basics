@@ -1,5 +1,6 @@
 from src.clients.http import get
 from src.config.api import WEATHER_API_URL
+from src.utils.validation.parse_weather import parse_weather
 
 
 def get_weather(latitude: float, longitude: float) -> dict:
@@ -11,11 +12,4 @@ def get_weather(latitude: float, longitude: float) -> dict:
             "current": "temperature_2m,weather_code",
         },
     )
-    temperature = response.get("current", {}).get("temperature_2m")
-    weather_code = response.get("current", {}).get("weather_code")
-    unit = response.get("current_units", {}).get("temperature_2m")
-    return {
-        "temperature": temperature,
-        "weather_code": weather_code,
-        "unit": unit,
-    }
+    return parse_weather(response)
