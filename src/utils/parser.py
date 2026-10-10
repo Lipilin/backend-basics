@@ -7,4 +7,5 @@ def parse_args() -> dict:
     parser = argparse.ArgumentParser()
     parser.add_argument("--city", required=True)
     parser.add_argument("--currency", default=DEFAULT_CURRENCY)
+    parser.add_argument("--json", action="store_true")
     return parser.parse_args()

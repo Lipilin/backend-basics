@@ -1,4 +1,12 @@
-def print_summary(summary: dict):
+import json
+
+
+def print_summary(summary: dict, is_json: bool = False):
+    if is_json:
+        print(json.dumps(summary, indent=4))
+        with open("summary.json", "w") as f:
+            json.dump(summary, f, indent=4)
+        return
     weather = summary.get("weather", {})
     rates = summary.get("rates", {})
     print(f"Город: {summary.get('city', '')}")

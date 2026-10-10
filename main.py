@@ -9,8 +9,9 @@ def main():
         args = parse_args()
         city = args.city
         currency = args.currency
+        is_json = args.json
         summary = get_city_summary(city, currency)
-        print_summary(summary)
+        print_summary(summary, is_json)
     except SystemExit:
         print("Введены некорректные аргументы")
         return 2
