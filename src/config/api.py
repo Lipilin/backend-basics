@@ -1,0 +1,5 @@
+CURRENCY_API_URL = "https://api.frankfurter.dev/v2/rate"
+WEATHER_API_URL = "https://api.open-meteo.com/v1/forecast"
+COORDINATES_API_URL = "https://geocoding-api.open-meteo.com/v1/search"
+TARGET_CURRENCY = "RUB"
+DEFAULT_CURRENCY = "USD"
