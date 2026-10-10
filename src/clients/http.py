@@ -1,14 +1,16 @@
-import requests
-from src.config.network import DEFAULT_TIMEOUT, DEFAULT_RETRIES
-from src.exceptions import NetworkError, ServerError, BadRequestError
-from requests.exceptions import HTTPError, ConnectionError, Timeout, JSONDecodeError
 from time import sleep
+
+import requests
+from requests.exceptions import ConnectionError, HTTPError, JSONDecodeError, Timeout
+
+from src.config.network import DEFAULT_RETRIES, DEFAULT_TIMEOUT, DEFAULT_RETRY_AFTER
+from src.exceptions import BadRequestError, NetworkError, ServerError
 
 
 def get(url: str, params: dict | None = None) -> dict:
     for _ in range(DEFAULT_RETRIES):
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=DEFAULT_TIMEOUT)
             response.raise_for_status()
             return response.json()
         except (Timeout, ConnectionError) as e:
@@ -19,6 +21,6 @@ def get(url: str, params: dict | None = None) -> dict:
                 raise ServerError(f"Сервер не может корректно обработать запрос: {e}")
             if e.response.status_code != 429 and e.response.status_code < 500:
                 raise BadRequestError(f"Ошибка формирования запроса: {e}")
-            sleep(e.response.headers.get("Retry-After", DEFAULT_TIMEOUT))
-        except JSONDecodeError as e:
-            raise ValueError(f"Сервер вернул ответ не в JSON")
+            sleep(int(e.response.headers.get("Retry-After", DEFAULT_RETRY_AFTER)))
+        except JSONDecodeError:
+            raise ValueError("Сервер вернул ответ не в JSON")

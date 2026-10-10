@@ -1,5 +1,5 @@
-from .NetworkError import NetworkError
-from .ServerError import ServerError
-from .BadRequestError import BadRequestError
+from .bad_request_error import BadRequestError
+from .network_error import NetworkError
+from .server_error import ServerError
 
-__all__ = ["NetworkError", "ServerError", "BadRequestError"]
+__all__ = ["BadRequestError", "NetworkError", "ServerError"]
