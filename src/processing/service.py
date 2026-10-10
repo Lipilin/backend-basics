@@ -1,6 +1,6 @@
 from src.clients import get_coordinates, get_rates, get_weather
 from src.config.api import DEFAULT_CURRENCY, TARGET_CURRENCY
-from src.processing.preprocessing import check_is_warm_clothes, check_is_expensive
+from src.processing.preprocessing import check_is_expensive, check_is_warm_clothes
 
 
 def get_city_summary(city: str, currency: str = DEFAULT_CURRENCY) -> dict:

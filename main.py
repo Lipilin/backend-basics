@@ -1,6 +1,6 @@
 from src import get_city_summary, parse_args, print_summary
-from src.exceptions import NetworkError, ServerError, BadRequestError
-
+from src.exceptions import BadRequestError, NetworkError, ServerError
+import sys
 
 def main():
     try:
@@ -9,20 +9,17 @@ def main():
         currency = args.currency
         summary = get_city_summary(city, currency)
         print_summary(summary)
-    except ValueError as e:
-        print(e)
-        return 1
-    except SystemExit as e:
+    except SystemExit:
         print("Введены некорректные аргументы")
         return 2
     except BadRequestError as e:
         print(e)
         return 3
-    except (ServerError, NetworkError) as e:
+    except (ServerError, NetworkError, ValueError) as e:
         print(e)
         return 4
     return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
