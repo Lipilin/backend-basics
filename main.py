@@ -21,9 +21,6 @@ def main():
     except (ServerError, NetworkError, ValueError) as e:
         print(e)
         return 4
-    except Exception as e:
-        print(e)
-        return 1
     return 0
 
 
