@@ -1,0 +1,576 @@
+openapi: 3.1.0
+info:
+  title: Библиотека
+  version: 1.0.0
+servers:
+  - url: https://library.api.com/v1
+tags:
+  - name: Books
+    description: "Операции с книгами"
+  - name: Readers
+    description: "Операции с читателями"
+  - name: Loans
+    description: "Операции с выдачей книг"
+paths:
+  /books/{id}:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+    get:
+      tags: [Books]
+      operationId: getBook
+      summary: "Получить книгу по ID"
+      responses:
+        "200":
+          description: "Книга была успешно найдена, возвращена вся информация о ней"
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Book'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+    put: 
+      tags: [Books]
+      operationId: updateBook
+      summary: "Обновить книгу"
+      requestBody: 
+        required: true
+        content: 
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/Book'
+      responses:
+        "204":
+          description: "Книга была успешно обновлена"
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+        "422":
+          $ref: '#/components/responses/UnprocessableEntityError'
+    delete:
+      tags: [Books]
+      operationId: deleteBook
+      summary: "Удалить книгу"
+      description: "Нельзя удалить книгу, у которой есть активные выдачи (returned_at == null)"
+      responses:
+        "204":
+          description: "Книга была успешно удалена"
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+        "422":
+          $ref: '#/components/responses/UnprocessableEntityError'
+          
+  /books:
+    get:
+      tags: [Books]
+      operationId: listBooks
+      summary: "Список книг"
+      parameters:
+        - name: author
+          in: query
+          schema: { type: string }
+          description: "Фильтр по автору"
+        - $ref: '#/components/parameters/BooksSort'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+      responses:
+        "200":
+          description: "Успешно получен список книг по заданным условиям"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooksList'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+    post:
+      tags: [Books]
+      operationId: createBook
+      summary: "Создать книгу"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+      responses:
+        "201":
+          description: "Книга была успешно создана, возвращена свежая запись новой книги из базы данных"
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Book'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "422":
+          $ref: '#/components/responses/UnprocessableEntityError'
+
+  /readers/{id}:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+    get:
+      tags: [Readers]
+      operationId: getReader
+      summary: "Получить читателя по ID"
+      responses:
+        "200":
+          description: "Читатель успешно найден"
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Reader'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+    put: 
+      tags: [Readers]
+      operationId: updateReader
+      summary: "Обновить читателя"
+      requestBody: 
+        required: true
+        content: 
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/Reader'
+      responses:
+        "204":
+          description: "Данные читателя успешно обновлены"
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+        "422":
+          $ref: '#/components/responses/UnprocessableEntityError'
+    delete:
+      tags: [Readers]
+      operationId: deleteReader
+      summary: "Удалить читателя"
+      description: "Нельзя удалить читателя, у которого есть активные выдачи (returned_at == null)"
+      responses:
+        "204":
+          description: "Читатель успешно удален"
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+        "422":
+          $ref: '#/components/responses/UnprocessableEntityError'
+
+  /readers:
+    get:
+      tags: [Readers]
+      operationId: listReaders
+      summary: "Список читателей"
+      parameters:
+        - name: email
+          in: query
+          schema: { type: string, format: email }
+          description: "Фильтр по email читателя"
+        - $ref: '#/components/parameters/ReadersSort'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+      responses:
+        "200":
+          description: "Успешно получен список читателей по заданным условиям"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadersList'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+    post:
+      tags: [Readers]
+      operationId: createReader
+      summary: "Создать читателя"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reader'
+      responses:
+        "201":
+          description: "Читатель успешно создан"
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Reader'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "422":
+          $ref: '#/components/responses/UnprocessableEntityError'
+  /loans/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get: 
+      tags: [Loans]
+      operationId: getLoan
+      summary: "Получить выдачу по ID"
+      responses:
+        "200":
+          description: "Долг успешно найден, возращена информация"
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+  /loans/{id}/return:
+    parameters:
+      - name: id
+        in: path 
+        required: true
+        schema: {type: integer}
+    post:
+      tags: [Loans]
+      operationId: returnLoan
+      summary: "Вернуть книгу"
+      responses: 
+        "200":
+          description: "Долг успешно погашен, вовзращены актуальные данные"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+  /loans:
+    get:
+      tags: [Loans]
+      operationId: listLoans
+      summary: "Список выдач"
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [overdue] }
+          description: "Фильтр по статусу выдачи"
+        - $ref: '#/components/parameters/LoansSort'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+      responses:
+        "200":
+          description: "Успешно получен список долгов по заданным условиям"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoansList'
+        "400":
+          $ref: '#/components/responses/InvalidRequestResponse'
+    post:
+      tags: [Loans]
+      operationId: createLoan
+      summary: "Выдать книгу"
+      description: >-
+        Выдача книги читателю. Правила:
+        книга выдаётся только при available_copies > 0;
+        у читателя может быть не более 5 активных выдач (returned_at == null);
+        due_date должна быть позже текущей даты
+      parameters: 
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Уникальный ключ идемпотентности (UUID v4), генерируемый клиентом.
+            Повторный запрос с тем же ключом и тем же телом вернёт сохранённый ответ
+            без повторного создания выдачи. Ключи хранятся 24 часа.
+            Использование ключа с другим телом запроса приведёт к ошибке 409 Conflict
+          schema: 
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/Loan'
+      responses:
+        "201":
+          description: "Долг успешно создан, возврашена свежая запись из базы данных"
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        "400":
+          description: "Некорректный запрос: невалидный JSON или отсутствует заголовок Idempotency-Key"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingIdempotencyKey:
+                  summary: "Отсутствует заголовок Idempotency-Key"
+                  value:
+                    code: INVALID_REQUEST
+                    message: "Заголовок Idempotency-Key обязателен"
+                invalidJson:
+                  summary: "Невалидный JSON"
+                  value:
+                    code: INVALID_REQUEST
+                    message: "Тело запроса не является валидным JSON"
+        "404":
+          $ref: '#/components/responses/NotFoundResponse'
+        "409":
+          $ref: '#/components/responses/ConflictResponse'
+        "422":
+          $ref: '#/components/responses/UnprocessableEntityError'
+components:
+  responses:
+    InvalidRequestResponse:
+      description: "Некорректный запрос: невалидный JSON, неверный тип параметра пути или query"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: INVALID_REQUEST
+            message: "Параметр id должен быть целым числом"
+    NotFoundResponse:
+      description: "Не найдено"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: NOT_FOUND
+            message: "Книга с указанным ID не найдена"
+    UnprocessableEntityError:
+      description: >-
+        Запрос синтаксически корректен, но не может быть обработан:
+        Ошибка возникла либо при валидации, либо при нарушении бизнес-правила
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            validationError:
+              summary: "Тело запроса не прошло валидацию"
+              value:
+                code: VALIDATION_ERROR
+                message: "Тело запроса не прошло валидацию"
+                details:
+                  - field: title
+                    message: "Должно содержать минимум 3 символа"
+                  - field: total_copies
+                    message: "Должно быть не меньше 0"
+            businessRuleViolation:
+              summary: "Нарушено бизнес-правило"
+              value:
+                code: BUSINESS_RULE_VIOLATION
+                message: "Нельзя удалить книгу, у которой есть активные выдачи"
+    ConflictResponse:
+      description: "Конфликт: ключ идемпотентности уже использован с другим телом запроса или запрос с этим ключом ещё обрабатывается"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idempotencyMismatch:
+              summary: "Ключ уже использован с другим телом запроса"
+              value:
+                code: IDEMPOTENCY_MISMATCH
+                message: "Idempotency-Key уже использован с другими параметрами запроса"
+  parameters:
+    BooksSort:
+      name: sort
+      in: query
+      description: "Поле для сортировки списка книг. Сортировка всегда по возрастанию"
+      schema:
+        type: string
+        enum: [title, author, published_year]
+        default: title
+    ReadersSort:
+      name: sort
+      in: query
+      description: "Поле для сортировки списка читателей. Сортировка всегда по возрастанию"
+      schema:
+        type: string
+        enum: [full_name, registered_at]
+        default: full_name
+    LoansSort:
+      name: sort
+      in: query
+      description: "Поле для сортировки списка выдач. Сортировка всегда по возрастанию"
+      schema:
+        type: string
+        enum: [loaned_at, due_date, returned_at]
+        default: loaned_at
+    LimitParam:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      description: "Кол-во записей которое необходмо взять"
+    OffsetParam: 
+      name: offset
+      description: "Кол-во записей для пропуска"
+      in: query 
+      schema: { type: integer, minimum: 0, default: 0 }
+  headers:
+    Location:
+      description: "URL созданного ресурса"
+      schema: { type: string, examples: ["/v1/books/42"] }
+  schemas:
+    Book:
+      type: object
+      description: "Книга. Нельзя удалить, пока по ней есть активные выдачи"
+      required: [id, title, author, isbn, published_year, total_copies, available_copies]
+      properties:
+        id: { type: integer, readOnly: true } 
+        title: { type: string, minLength: 3 } 
+        author: { type: string, minLength: 3 }
+        isbn: { type: string, minLength: 10, maxLength: 13, examples: ["9783161484100"] }
+        published_year: { type: string, format: date }
+        total_copies:
+          type: integer
+          minimum: 0
+          description: "Общее количество экземпляров книги в библиотеке"
+        available_copies:
+          type: integer
+          minimum: 0
+          readOnly: true
+          description: >-
+            Количество доступных для выдачи экземпляров. Вычисляется сервером как
+            total_copies минус количество активных выдач; клиент это поле не передаёт.
+            Выдача возможна только при available_copies > 0
+
+    Reader:
+      type: object
+      description: >-
+        Читатель. Может иметь не более 5 активных выдач одновременно.
+        Нельзя удалить, пока у него есть активные выдачи
+      required: [id, full_name, email, registered_at]
+      properties:
+        id: { type: integer, readOnly: true }
+        full_name: { type: string, minLength: 3 }
+        email: { type: string, format: email, examples: ["egor@mail.ru"] }
+        registered_at: { type: string, format: date-time, readOnly: true }
+
+    Loan:
+       type: object
+       description: >-
+         Выдача книги читателю. Активная выдача — returned_at == null
+       required: [id, book_id, reader_id, loaned_at, due_date, returned_at]
+       properties:
+         id: { type: integer, readOnly: true }
+         book_id:
+           type: integer
+           description: "ID взятой из библиотеки книги. У книги должно быть available_copies > 0"
+         reader_id:
+           type: integer
+           description: "ID читателя, который взял книгу. У читателя должно быть меньше 5 активных выдач"
+         loaned_at: { type: string, format: date-time, readOnly: true }
+         due_date:
+           type: string
+           format: date
+           description: "Срок возврата. Должен быть позже текущей даты"
+         returned_at:
+           type: [string, 'null']
+           format: date-time
+           readOnly: true
+           description: "Дата возврата. null — выдача активна"
+    BooksList:
+      type: object
+      required: [data, total, limit, offset]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Book'
+        total:
+          type: integer
+          minimum: 0
+        limit: 
+          type: integer
+          minimum: 0
+        offset:
+          type: integer
+          minimum: 0
+    ReadersList:
+      type: object
+      required: [data, total, limit, offset]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reader'
+        total:
+          type: integer
+          minimum: 0
+        limit: 
+          type: integer
+          minimum: 0
+        offset:
+          type: integer
+          minimum: 0
+    LoansList:
+      type: object
+      required: [data, total, limit, offset]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Loan'
+        total:
+          type: integer
+          minimum: 0
+        limit: 
+          type: integer
+          minimum: 0
+        offset:
+          type: integer
+          minimum: 0
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties: 
+        code: 
+          type: string
+          description: "Машинный код ошибки"
+          enum: 
+            - INVALID_REQUEST
+            - NOT_FOUND
+            - VALIDATION_ERROR
+            - CONFLICT
+            - BUSINESS_RULE_VIOLATION
+            - IDEMPOTENCY_MISMATCH
+          examples: ["NOT_FOUND"]
+          
+        message: 
+          type: string
+          minLength: 3
+          description: "Описание ошибки для разработчика"
+          examples: ["Книга с указанным ID не найдена"]
+        details:
+          type: array
+          description: "Ошибки по отдельным полям, заполняется для VALIDATION_ERROR"
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field: { type: string, examples: ["title"] }
+              message: { type: string, examples: ["Должно содержать минимум 3 символа"] }
