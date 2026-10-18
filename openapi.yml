@@ -574,3 +574,9 @@ components:
             properties:
               field: { type: string, examples: ["title"] }
               message: { type: string, examples: ["Должно содержать минимум 3 символа"] }
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer
+      bearerFormat: JWT
+      description: "Стандартный токен авторизации Bearer"
