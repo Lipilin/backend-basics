@@ -42,18 +42,12 @@ def create_order(
 def get_orders(
     order_service: ServiceDependency,
     pagination_settings: PaginationSettingsDependency,
-    limit: int | None = Query(default = None, ge = 1),
-    offset: int = Query(default = 0, ge = 0),
-    orderFilter: OrderStatus | None = Query(default = None),
+    orderFilter: OrderStatus | None = Query(default=None),
 ):
-    if limit is None:
-        limit = pagination_settings.size
-    if limit > pagination_settings.max_size:
-        limit = pagination_settings.max_size
     return order_service.list_orders(
-        offset,
-        limit,
-        orderFilter
+        pagination_settings.offset,
+        pagination_settings.limit,
+        orderFilter,
     )
 
 

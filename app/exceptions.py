@@ -4,10 +4,18 @@ from uuid import UUID
 class OrderNotFoundError(Exception):
     def __init__(self, order_id: UUID) -> None:
         self.order_id = order_id
-        super().__init__(f"Заказ с ID {order_id} не найден")
+        super().__init__(f"Заказ с id={order_id} не найден")
+
 
 class OrderAlreadyCompletedError(Exception):
-
     def __init__(self, order_id: UUID) -> None:
         self.order_id = order_id
-        super().__init__(f"Заказ с ID {order_id} уже завершен")
+        super().__init__(
+            f"Заказ {order_id} уже выполнен и не может быть изменён"
+        )
+
+
+class PageLimitExceededError(Exception):
+    def __init__(self, max_page_size: int) -> None:
+        self.max_page_size = max_page_size
+        super().__init__(f"limit не может быть больше {max_page_size}")

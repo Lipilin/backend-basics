@@ -14,5 +14,5 @@ class Settings(BaseSettings):
 
 
 class PaginationSettings(BaseModel):
-    size: int
-    max_size: int
+    limit: int
+    offset: int

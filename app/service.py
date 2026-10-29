@@ -1,17 +1,19 @@
 from typing import Any
 from uuid import UUID
 
-from exceptions import OrderAlreadyCompletedError, OrderNotFoundError
+from exceptions import (
+    OrderAlreadyCompletedError,
+    OrderNotFoundError,
+)
 from repository_abstract import OrderRepositoryAbstract
 from schemas import Order, OrderList, OrderStatus
-from config import PaginationSettings
 
 
 class OrderService:
     def __init__(self, repository: OrderRepositoryAbstract) -> None:
         self._repository = repository
 
-    def create_order(self, new_values: dict[Any, Any]) -> Order:
+    def create_order(self, new_values: dict[str, Any]) -> Order:
         return self._repository.add(new_values)
 
     def list_orders(
@@ -32,7 +34,7 @@ class OrderService:
             raise OrderNotFoundError(order_id)
         return order
 
-    def patch_order(self, order_id: UUID, updates: dict[Any, Any]) -> Order:
+    def patch_order(self, order_id: UUID, updates: dict[str, Any]) -> Order:
         order = self._repository.get_by_id(order_id)
         if order is None:
             raise OrderNotFoundError(order_id)
@@ -40,6 +42,8 @@ class OrderService:
             raise OrderAlreadyCompletedError(order_id)
 
         updated = self._repository.update(order_id, updates)
+        if updated is None:
+            raise OrderNotFoundError(order_id)
         return updated
 
     def delete_order(self, order_id: UUID) -> None:

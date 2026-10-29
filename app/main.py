@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from dependencies import (
-    RepositoryDependency,
-    SettingsDependency,
-    get_settings,
+from dependencies import RepositoryDependency, SettingsDependency, get_settings
+from exceptions import (
+    OrderAlreadyCompletedError,
+    OrderNotFoundError,
+    PageLimitExceededError,
 )
-from exceptions import OrderAlreadyCompletedError, OrderNotFoundError
 from routers.orders import router as orders_router
 
 app = FastAPI(
@@ -16,24 +16,33 @@ app = FastAPI(
     contact={
         "name": get_settings().contact_name,
         "email": get_settings().contact_email,
-    }
+    },
 )
 
 
 @app.exception_handler(OrderNotFoundError)
-def handle_order_not_found(request, exception: OrderNotFoundError):
+def handle_order_not_found(_request, exc: OrderNotFoundError):
     return JSONResponse(
         status_code=404,
-        content={ "message": str(exception) },
+        content={"detail": str(exc)},
     )
 
 
 @app.exception_handler(OrderAlreadyCompletedError)
-def handle_order_already_completed(request, exception: OrderAlreadyCompletedError):
+def handle_order_already_completed(_request, exc: OrderAlreadyCompletedError):
     return JSONResponse(
         status_code=409,
-        content={ "message": str(exception) },
+        content={"detail": str(exc)},
     )
+
+
+@app.exception_handler(PageLimitExceededError)
+def handle_page_limit_exceeded(_request, exc: PageLimitExceededError):
+    return JSONResponse(
+        status_code=422,
+        content={"detail": str(exc)},
+    )
+
 
 @app.get("/", tags=["сервис"], summary="Приветствие")
 def read_root():
