@@ -11,3 +11,6 @@
 - `APP_NAME`, `DESCRIPTION`, `VERSION` — метаданные приложения
 - `CONTACT_NAME`, `CONTACT_EMAIL` — контакт в OpenAPI и `/info`
 - `DEFAULT_PAGE_SIZE`, `MAX_PAGE_SIZE` — пагинация для `GET /orders`
+
+##Правки
+В новой версии добавлено разбиение на слои
