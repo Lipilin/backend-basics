@@ -1,8 +1,13 @@
-from models import Order
-from uuid import UUID
+from repository import OrderRepository
+from service import OrderService
 
-coffee_shop_dict: dict[UUID, Order] = {}
+_repository = OrderRepository()
+_order_service = OrderService(_repository)
 
 
-def get_coffee_shop_dict() -> dict[UUID, Order]:
-    return coffee_shop_dict
+def get_order_service() -> OrderService:
+    return _order_service
+
+
+def get_order_repository() -> OrderRepository:
+    return _repository

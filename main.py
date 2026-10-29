@@ -1,26 +1,38 @@
-from fastapi import Depends, Query
-from db import get_coffee_shop_dict
-from fastapi import HTTPException
-from settings import Settings, create_app, get_settings
-import uuid
 from uuid import UUID
-from models import (
+
+from fastapi import Depends, Query
+from fastapi.responses import JSONResponse
+
+from db import get_order_repository, get_order_service
+from exceptions import OrderAlreadyCompletedError, OrderNotFoundError
+from repository import OrderRepository
+from schemas import (
     Order,
-    OrderList,
     OrderCreateRequest,
+    OrderList,
     OrderPatchRequest,
     OrderStatus,
 )
+from service import OrderService
+from settings import Settings, create_app, get_settings
 
 app = create_app()
 
 
-def ensure_order_exists(order_id: UUID, orders: dict[UUID, Order]):
-    if order_id not in orders:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Заказ с ID {order_id} не найден",
-        )
+@app.exception_handler(OrderNotFoundError)
+def handle_order_not_found(_request, exc: OrderNotFoundError):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+@app.exception_handler(OrderAlreadyCompletedError)
+def handle_order_already_completed(_request, exc: OrderAlreadyCompletedError):
+    return JSONResponse(
+        status_code=409,
+        content={"detail": str(exc)},
+    )
 
 
 @app.get("/", tags=["сервис"], summary="Приветствие")
@@ -31,7 +43,7 @@ def read_root():
 @app.get("/info", status_code=200, tags=["сервис"], summary="Информация о сервисе")
 def get_info(
     app_settings: Settings = Depends(get_settings),
-    orders=Depends(get_coffee_shop_dict),
+    repository: OrderRepository = Depends(get_order_repository),
 ):
     return {
         "app_name": app_settings.app_name,
@@ -41,74 +53,79 @@ def get_info(
             "name": app_settings.contact_name,
             "email": app_settings.contact_email,
         },
-        "orders_count": len(orders),
+        "orders_count": len(repository.get_all()),
     }
 
 
-@app.post("/orders", response_model=Order, status_code=201, tags=["редактирование"], summary="Создание заказа")
+@app.post(
+    "/orders",
+    response_model=Order,
+    status_code=201,
+    tags=["редактирование"],
+    summary="Создание заказа",
+)
 def create_order(
     request: OrderCreateRequest,
-    orders=Depends(get_coffee_shop_dict),
+    order_service: OrderService = Depends(get_order_service),
 ):
-    order_request_dict = request.model_dump()
-    new_order = Order(id=uuid.uuid4(), **order_request_dict)
-    orders[new_order.id] = new_order
-    return new_order
+    return order_service.create_order(request.model_dump())
 
 
-@app.get("/orders", response_model=OrderList, status_code=200, tags=["получение заказов"], summary="Список заказов")
+@app.get(
+    "/orders",
+    response_model=OrderList,
+    status_code=200,
+    tags=["получение заказов"],
+    summary="Список заказов",
+)
 def get_orders(
     app_settings: Settings = Depends(get_settings),
-    orders=Depends(get_coffee_shop_dict),
+    order_service: OrderService = Depends(get_order_service),
     offset: int = Query(default=0, ge=0),
     limit: int | None = Query(default=None, ge=1),
     filter: OrderStatus | None = Query(default=None),
 ):
-    if limit is None:
-        limit = app_settings.default_page_size
-    if limit > app_settings.max_page_size:
-        raise HTTPException(
-            status_code=422,
-            detail=f"limit не может быть больше {app_settings.max_page_size}",
-        )
-    result = list(orders.values())
-    if filter is not None:
-        result = [order for order in result if order.status == filter]
-    result = result[offset:offset + limit]
-    return OrderList(orders=result, offset=offset, limit=limit)
+    return order_service.list_orders(app_settings, offset, limit, filter)
 
 
-@app.get("/orders/{order_id}", response_model=Order, status_code=200, tags=["получение заказов"], summary="Заказ по идентификатору")
+@app.get(
+    "/orders/{order_id}",
+    response_model=Order,
+    status_code=200,
+    tags=["получение заказов"],
+    summary="Заказ по идентификатору",
+)
 def get_order_by_id(
     order_id: UUID,
-    orders=Depends(get_coffee_shop_dict),
+    order_service: OrderService = Depends(get_order_service),
 ):
-    ensure_order_exists(order_id, orders)
-    return orders[order_id]
+    return order_service.get_order(order_id)
 
 
-@app.patch("/orders/{order_id}", response_model=Order, status_code=200, tags=["редактирование"], summary="Частичное обновление заказа")
+@app.patch(
+    "/orders/{order_id}",
+    response_model=Order,
+    status_code=200,
+    tags=["редактирование"],
+    summary="Частичное обновление заказа",
+)
 def patch_order(
     order_id: UUID,
     request: OrderPatchRequest,
-    orders=Depends(get_coffee_shop_dict),
+    order_service: OrderService = Depends(get_order_service),
 ):
-    ensure_order_exists(order_id, orders)
-    order = orders[order_id]
-    updates = {
-        key: value
-        for key, value in request.model_dump(exclude_unset=True).items()
-    }
-    if updates:
-        order = order.model_copy(update=updates)
-        orders[order_id] = order
-    return order
+    updates = request.model_dump(exclude_unset=True)
+    return order_service.patch_order(order_id, updates)
 
 
-@app.delete("/orders/{order_id}", status_code=204, tags=["редактирование"], summary="Отмена заказа")
+@app.delete(
+    "/orders/{order_id}",
+    status_code=204,
+    tags=["редактирование"],
+    summary="Отмена заказа",
+)
 def delete_order(
     order_id: UUID,
-    orders=Depends(get_coffee_shop_dict),
+    order_service: OrderService = Depends(get_order_service),
 ):
-    ensure_order_exists(order_id, orders)
-    del orders[order_id]
+    order_service.delete_order(order_id)
